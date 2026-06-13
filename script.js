@@ -82,8 +82,20 @@ const seedWishes = [
   { name: "The Fernando family", msg: "So happy for you two! Can't wait to celebrate under the trees." },
 ];
 
-function addWishCard({ name, msg }){
-  if (!wall) return;
+// Saved wishes persist in this browser via localStorage.
+// Wrapped in try/catch so the page still works where storage is blocked.
+const WISH_KEY = "kh_wishes_v1";
+function loadWishes(){
+  try { return JSON.parse(localStorage.getItem(WISH_KEY)) || []; }
+  catch (e) { return []; }
+}
+function saveWishes(arr){
+  try { localStorage.setItem(WISH_KEY, JSON.stringify(arr)); }
+  catch (e) { /* private mode / sandbox: keep in memory for this session */ }
+}
+let savedWishes = loadWishes();
+
+function makeWishCard({ name, msg }){
   const card = document.createElement("div");
   card.className = "wish-card";
   const p = document.createElement("p");
@@ -93,10 +105,17 @@ function addWishCard({ name, msg }){
   by.textContent = "— " + (name || "A guest");
   card.appendChild(p);
   card.appendChild(by);
-  wall.prepend(card);
+  return card;
 }
 
-seedWishes.forEach(addWishCard);
+// Render: saved wishes (newest first) on top, sample wishes beneath
+function renderWall(){
+  if (!wall) return;
+  wall.innerHTML = "";
+  savedWishes.forEach(w => wall.appendChild(makeWishCard(w)));
+  seedWishes.forEach(w => wall.appendChild(makeWishCard(w)));
+}
+renderWall();
 
 function readWish(){
   const name = (nameInput?.value || "").trim();
@@ -108,8 +127,11 @@ if (addBtn){
   addBtn.addEventListener("click", () => {
     const { name, msg } = readWish();
     if (!msg){ if (wishHint) wishHint.textContent = "Add a short message first 🌿"; return; }
-    addWishCard({ name, msg });
-    if (wishHint) wishHint.textContent = "Added to the wall — thank you!";
+    savedWishes.unshift({ name, msg });   // newest first
+    saveWishes(savedWishes);
+    renderWall();
+    if (wishHint) wishHint.textContent = "Saved to the wall — thank you!";
+    if (nameInput) nameInput.value = "";
     if (msgInput) msgInput.value = "";
   });
 }
