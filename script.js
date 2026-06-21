@@ -24,8 +24,8 @@ document.querySelectorAll(".faq-q").forEach((btn) => {
 });
 
 // ---------- Countdown to the wedding ----------
-// Wedding morning: 14 August 2026, 10:00 (local time)
-const WEDDING = new Date(2026, 7, 14, 10, 0, 0);
+// Wedding morning: Thursday 13 August 2026, 9:00 am (local time)
+const WEDDING = new Date(2026, 7, 13, 9, 0, 0);
 const cdEls = {
   days: document.querySelector('[data-cd="days"]'),
   hours: document.querySelector('[data-cd="hours"]'),
@@ -68,34 +68,35 @@ if (reduceMotion || !("IntersectionObserver" in window)) {
   reveals.forEach(el => io.observe(el));
 }
 
-// ---------- Wishes wall ----------
-const wall = document.getElementById("wish-wall");
-const nameInput = document.getElementById("wish-name");
-const msgInput = document.getElementById("wish-msg");
-const addBtn = document.getElementById("wish-add");
-const sendBtn = document.getElementById("wish-send");
-const wishHint = document.getElementById("wish-hint");
+// ---------- Wishes (submitted to the couple's Google Form) ----------
+const nameInput  = document.getElementById("wish-name");
+const msgInput   = document.getElementById("wish-msg");
+const submitBtn  = document.getElementById("wish-submit");
+const waBtn      = document.getElementById("wish-wa");
+const wishHint   = document.getElementById("wish-hint");
+const wishThanks = document.getElementById("wish-thanks");
 
-// A couple of sample wishes so the wall never looks empty
-const seedWishes = [
-  { name: "Aunty Niluka", msg: "Wishing you both a lifetime of love, laughter and many happy years ahead." },
-  { name: "The Fernando family", msg: "So happy for you two! Can't wait to celebrate under the trees." },
-];
+// Google Form endpoint + field IDs (from the pre-filled link)
+const FORM_ACTION = "https://docs.google.com/forms/d/e/1FAIpQLScnpPR2oSNrJdstGzW4In7_GTzNr3xSWXInKJtKBwnrbG3eXA/formResponse";
+const FIELD_NAME = "entry.1024464145";
+const FIELD_WISH = "entry.230512055";
 
-// Saved wishes persist in this browser via localStorage.
-// Wrapped in try/catch so the page still works where storage is blocked.
-const WISH_KEY = "kh_wishes_v1";
-function loadWishes(){
-  try { return JSON.parse(localStorage.getItem(WISH_KEY)) || []; }
-  catch (e) { return []; }
+function readWish(){
+  return {
+    name: (nameInput?.value || "").trim(),
+    msg:  (msgInput?.value || "").trim(),
+  };
 }
-function saveWishes(arr){
-  try { localStorage.setItem(WISH_KEY, JSON.stringify(arr)); }
-  catch (e) { /* private mode / sandbox: keep in memory for this session */ }
-}
-let savedWishes = loadWishes();
 
-function makeWishCard({ name, msg }){
+function showThanks(name, msg){
+  if (!wishThanks) return;
+  wishThanks.hidden = false;
+  wishThanks.innerHTML = "";
+
+  const head = document.createElement("p");
+  head.className = "thanks-head";
+  head.textContent = "Thank you" + (name ? ", " + name : "") + " — your wish is on its way to us. 🌿";
+
   const card = document.createElement("div");
   card.className = "wish-card";
   const p = document.createElement("p");
@@ -105,46 +106,45 @@ function makeWishCard({ name, msg }){
   by.textContent = "— " + (name || "A guest");
   card.appendChild(p);
   card.appendChild(by);
-  return card;
+
+  wishThanks.appendChild(head);
+  wishThanks.appendChild(card);
 }
 
-// Render: saved wishes (newest first) on top, sample wishes beneath
-function renderWall(){
-  if (!wall) return;
-  wall.innerHTML = "";
-  savedWishes.forEach(w => wall.appendChild(makeWishCard(w)));
-  seedWishes.forEach(w => wall.appendChild(makeWishCard(w)));
-}
-renderWall();
-
-function readWish(){
-  const name = (nameInput?.value || "").trim();
-  const msg = (msgInput?.value || "").trim();
-  return { name, msg };
-}
-
-if (addBtn){
-  addBtn.addEventListener("click", () => {
+if (submitBtn){
+  submitBtn.addEventListener("click", () => {
     const { name, msg } = readWish();
-    if (!msg){ if (wishHint) wishHint.textContent = "Add a short message first 🌿"; return; }
-    savedWishes.unshift({ name, msg });   // newest first
-    saveWishes(savedWishes);
-    renderWall();
-    if (wishHint) wishHint.textContent = "Saved to the wall — thank you!";
-    if (nameInput) nameInput.value = "";
-    if (msgInput) msgInput.value = "";
+    if (!msg){ if (wishHint) wishHint.textContent = "Write a short message first 🌿"; return; }
+
+    submitBtn.disabled = true;
+    if (wishHint) wishHint.textContent = "Sending…";
+
+    const body = new URLSearchParams();
+    body.append(FIELD_NAME, name);
+    body.append(FIELD_WISH, msg);
+
+    // Google Forms accepts a cross-origin POST; the response is opaque (no-cors),
+    // so we optimistically confirm once the request has gone out.
+    const finish = () => {
+      if (wishHint) wishHint.textContent = "";
+      showThanks(name, msg);
+      if (nameInput) nameInput.value = "";
+      if (msgInput) msgInput.value = "";
+      submitBtn.disabled = false;
+    };
+    fetch(FORM_ACTION, { method: "POST", mode: "no-cors", body })
+      .then(finish)
+      .catch(finish);
   });
 }
 
-if (sendBtn){
-  sendBtn.addEventListener("click", () => {
+if (waBtn){
+  waBtn.addEventListener("click", () => {
     const { name, msg } = readWish();
     if (!msg){ if (wishHint) wishHint.textContent = "Write a wish, then send it 🌿"; return; }
-    const num = sendBtn.getAttribute("data-wa");
-    const text = encodeURIComponent(`Wishes for Kasuni & Hasitha — from ${name || "a guest"}:\n${msg}`);
+    const num = waBtn.getAttribute("data-wa");
+    const text = encodeURIComponent(`Wishes for Hasanthika & Hasitha — from ${name || "a guest"}:\n${msg}`);
     window.open(`https://wa.me/${num}?text=${text}`, "_blank", "noopener");
-    if (wishHint) wishHint.textContent = "Opening WhatsApp to send your wish…";
+    if (wishHint) wishHint.textContent = "Opening WhatsApp…";
   });
 }
-
-// ---------- Footer year-safe: nothing needed ----------
