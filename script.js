@@ -72,7 +72,7 @@ if (reduceMotion || !("IntersectionObserver" in window)) {
 const nameInput  = document.getElementById("wish-name");
 const msgInput   = document.getElementById("wish-msg");
 const submitBtn  = document.getElementById("wish-submit");
-const waBtn      = document.getElementById("wish-wa");
+const waBtns     = document.querySelectorAll(".wish-wa");
 const wishHint   = document.getElementById("wish-hint");
 const wishThanks = document.getElementById("wish-thanks");
 
@@ -138,13 +138,13 @@ if (submitBtn){
   });
 }
 
-if (waBtn){
-  waBtn.addEventListener("click", () => {
+waBtns.forEach((btn) => {
+  btn.addEventListener("click", () => {
     const { name, msg } = readWish();
     if (!msg){ if (wishHint) wishHint.textContent = "Write a wish, then send it 🌿"; return; }
-    const num = waBtn.getAttribute("data-wa");
+    const num = btn.getAttribute("data-wa");
     const text = encodeURIComponent(`Wishes for Hasanthika & Hasitha — from ${name || "a guest"}:\n${msg}`);
     window.open(`https://wa.me/${num}?text=${text}`, "_blank", "noopener");
     if (wishHint) wishHint.textContent = "Opening WhatsApp…";
   });
-}
+});
