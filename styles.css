@@ -277,11 +277,43 @@ a{color:inherit; text-decoration:none}
   margin-top:24px; columns:3; column-gap:16px;
 }
 .wish-card{
-  break-inside:avoid; margin-bottom:16px; padding:16px 18px; border-radius:16px;
+  position:relative;
+  break-inside:avoid; margin-bottom:16px; padding:16px 34px 16px 18px; border-radius:16px;
   border:1px solid var(--border); background: var(--card); box-shadow:0 10px 26px rgba(20,38,26,.06);
 }
+.wish-del{
+  position:absolute; top:8px; right:8px; width:26px; height:26px; line-height:1;
+  border:none; border-radius:50%; background:rgba(30,58,43,.07); color:var(--moss);
+  font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:background .15s ease, color .15s ease;
+}
+.wish-del:hover, .wish-del:focus-visible{ background:rgba(154,42,42,.12); color:#9a2a2a; }
 .wish-card p{ margin:0 0 8px; color:var(--ink); font-size:15px; }
 .wish-card .wish-by{ margin:0; font-family:var(--serif); font-size:14px; color:var(--moss); }
+
+/* Dress & colour code */
+.attire-block + .attire-block{ margin-top:16px; padding-top:16px; border-top:1px solid var(--border); }
+.attire-row{ display:flex; gap:14px; align-items:baseline; }
+.attire-who{
+  min-width:92px; font-size:12px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--moss); font-weight:700; flex-shrink:0;
+}
+.attire-what{ font-family:var(--serif); font-size:17px; color:var(--forest); line-height:1.4; }
+.swatches{ display:flex; gap:8px; margin:10px 0 0; flex-wrap:wrap; }
+.swatch{
+  width:24px; height:24px; border-radius:50%; background:var(--c);
+  border:1px solid rgba(30,58,43,.2); box-shadow:0 2px 6px rgba(20,38,26,.08);
+}
+
+/* Empty wishes state */
+.wish-empty{
+  margin:0; padding:18px; text-align:center; color:var(--moss);
+  font-family:var(--serif); font-size:16px;
+}
+
+/* Wishes thank-you confirmation */
+.wish-thanks{ margin-top:22px; max-width:560px; }
+.thanks-head{ margin:0 0 12px; font-family:var(--serif); font-size:18px; color:var(--moss); }
 
 /* FAQ */
 .faq{ padding:14px; }
@@ -328,6 +360,7 @@ a:focus-visible, .btn:focus-visible, .faq-q:focus-visible, .nav-toggle:focus-vis
   .nav.open{ display:flex; flex-direction:column; }
   .nav a{ display:block; width:100%; }
   .brand{ min-width:auto; }
+  .brand-name{ font-size:15px; }
 
   .grid-two{ grid-template-columns:1fr; }
   .moments-grid{ grid-template-columns:1fr; }
