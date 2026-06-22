@@ -72,7 +72,7 @@ if (reduceMotion || !("IntersectionObserver" in window)) {
 const nameInput  = document.getElementById("wish-name");
 const msgInput   = document.getElementById("wish-msg");
 const submitBtn  = document.getElementById("wish-submit");
-const waBtns     = document.querySelectorAll(".wish-wa");
+const waLinks    = document.querySelectorAll(".wish-wa");
 const wishHint   = document.getElementById("wish-hint");
 const wishThanks = document.getElementById("wish-thanks");
 
@@ -138,13 +138,16 @@ if (submitBtn){
   });
 }
 
-waBtns.forEach((btn) => {
-  btn.addEventListener("click", () => {
-    const { name, msg } = readWish();
-    if (!msg){ if (wishHint) wishHint.textContent = "Write a wish, then send it 🌿"; return; }
-    const num = btn.getAttribute("data-wa");
-    const text = encodeURIComponent(`Wishes for Hasanthika & Hasitha — from ${name || "a guest"}:\n${msg}`);
-    window.open(`https://wa.me/${num}?text=${text}`, "_blank", "noopener");
-    if (wishHint) wishHint.textContent = "Opening WhatsApp…";
+// Keep the WhatsApp links' hrefs in sync with whatever the guest has typed,
+// so a normal link-tap opens WhatsApp with their wish pre-filled (no popups, no blockers).
+function updateWaLinks(){
+  const { name, msg } = readWish();
+  const base = `Wishes for Hasanthika & Hasitha — from ${name || "a guest"}:`;
+  const text = encodeURIComponent(msg ? base + "\n" + msg : base);
+  waLinks.forEach((a) => {
+    const num = a.getAttribute("data-wa");
+    a.setAttribute("href", `https://wa.me/${num}?text=${text}`);
   });
-});
+}
+[nameInput, msgInput].forEach((el) => el && el.addEventListener("input", updateWaLinks));
+updateWaLinks(); // set initial hrefs on load
